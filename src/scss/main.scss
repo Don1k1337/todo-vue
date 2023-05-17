@@ -1,0 +1,47 @@
+@import 'mixins';
+
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
+body {
+  background: #3b4a5d;
+}
+
+.btn {
+  @include common-btn;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: #ffffff;
+
+  &:hover {
+    background: #c0392b;
+    color: #ffffff;
+  }
+}
+
+.btn-secondary {
+  background: #3498db;
+  color: #ffffff;
+
+  &:hover {
+    background: #2980b9;
+    color: #ffffff;
+  }
+}
+
+.btn-primary {
+  background: #23b646;
+  color: #ffffff;
+
+  &:hover {
+    background: #23b646;
+    color: #ffffff;
+  }
+}

@@ -1,0 +1,41 @@
+// mixins
+@mixin common-card {
+  max-width: 700px;
+  overflow: hidden;
+  padding: 1rem;
+  margin: 70px auto;
+  border-radius: 10px;
+  box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.2);
+  background: #fff;
+
+  @media (max-width: 767px) {
+    margin: 60px auto;
+    padding: 0.5rem;
+    box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@mixin label-flex {
+  display: flex;
+  gap: 10px;
+}
+
+@mixin common-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: sans-serif;
+  cursor: pointer;
+  padding: 4px;
+  min-width: 100px;
+  border: 0;
+  border-radius: 4px;
+  -webkit-transition: background-color 100ms linear;
+  -ms-transition: background-color 100ms linear;
+  transition: background-color 100ms linear;
+
+  &:focus,
+  &.focus {
+    outline: 0;
+  }
+}
+
