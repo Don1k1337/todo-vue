@@ -13,28 +13,22 @@
 </template>
 
 <script>
-import {defineComponent} from 'vue'
-
-export default defineComponent({
+export default {
     name: "TaskCreator",
-    props: {
-        tasks: Array
-    },
     data() {
         return {
-            createTask: '',
-            createSubtask: '',
-        }
+            createTask: "",
+            createSubtask: "",
+        };
     },
-
     methods: {
         addTask() {
             // additional checks to prevent user actions when button is :disabled
             if (this.isDisabled) {
-                return
+                return;
             }
             const newTask = {
-                id: this.tasks.length + 1,
+                id: this.$store.state.tasks.length + 1,
                 name: this.createTask,
                 completed: false,
                 subtasks: []
@@ -49,18 +43,17 @@ export default defineComponent({
                 newTask.subtasks.push(newSubtask);
             }
 
-            this.$emit('task-created', newTask);
+            this.$store.dispatch('createTask', newTask);
             this.createTask = '';
             this.createSubtask = '';
         },
     },
     computed: {
         isDisabled() {
-            return this.createTask.trim() === ''
-        }
-    }
-
-})
+            return this.createTask.trim() === "";
+        },
+    },
+};
 </script>
 
 <style scoped lang="scss">

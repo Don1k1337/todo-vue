@@ -1,26 +1,38 @@
 <template>
     <card :card-title="'List of tasks'">
-        <task-creator :tasks="tasks" v-on:task-created="onTaskCreated" />
-        <div v-for="task in tasks" :key="task.id" class="task-item">
+        <task-creator :tasks="tasks" v-on:task-created="onTaskCreated"/>
+        <div class="task-item"
+             v-for="task in tasks" :key="task.id">
             <div class="task-item__actions">
-                <button class="btn btn-secondary" @click="editTask(task)">Edit</button>
-                <button class="btn btn-danger" @click="showConfirmationDialog(task)">Delete</button>
+                <button
+                        class="btn btn-secondary"
+                        @click="editTask(task)">Edit
+                </button>
+                <button
+                        class="btn btn-danger"
+                        @click="showConfirmationDialog(task)">Delete
+                </button>
             </div>
-            <div class="task-item__info" @click="toggleSubtasks(task)">
-                <span :style="updateTaskCompletion(task)" class="task-item__name"  @click="toggleSubtasks(task)">{{ task.name }}</span>
-                <span class="task-item__marker" v-if="task.completed === false">
-          Mark as completed
-          <input type="checkbox" v-model="task.completed" @change="updateTaskCompletion(task)">
-        </span>
-                <span class="task-item__marker" v-if="task.completed === true">
-          Mark as incomplete
-          <input type="checkbox" v-model="task.completed" @change="updateTaskCompletion(task)">
-        </span>
+            <div class="task-item__info"
+                 @click="toggleSubtasks(task)">
+                <span class="task-item__name"
+                      :style="completedTaskStyle(task)"
+                      @click="toggleSubtasks(task)">{{ task.name }}</span>
+                <span class="task-item__marker" v-if="task.completed">
+                    Mark as incomplete
+                    <input type="checkbox"
+                           v-model="task.completed"
+                           @change="updateTaskCompletion(task)">
+                </span>
+                <span class="task-item__marker" v-else>
+                    Mark as completed
+                    <input type="checkbox" v-model="task.completed" @change="updateTaskCompletion(task)">
+                </span>
             </div>
             <div class="task-item__subtasks-info">
-        <span v-show="task.subtasks.length > 0" class="task-item__subtask-info">
-          Total subtasks: {{ task.subtasks.length }} | Completed subtasks: {{ completedSubtasks(task) }}
-        </span>
+                <span v-show="task.subtasks.length > 0" class="task-item__subtask-info">
+                  Total subtasks: {{ task.subtasks.length }} | Completed subtasks: {{ completedSubtasksCount }}
+                </span>
                 <div v-show="task.subtasks.length === 0" class="task-item__no-subtasks">
                     No subtasks available for this task
                 </div>
@@ -28,8 +40,8 @@
             <div v-if="task.showSubtasks && task.subtasks.length > 0">
                 <ul class="task-item__subtask-list">
                     <li v-for="subtask in task.subtasks" :key="subtask.id">
-            <span class="task-item__subtask-label" :style="updateSubtaskCompletion(subtask)">{{ subtask.name }}
-              <input type="checkbox" v-model="subtask.completed">
+            <span class="task-item__subtask-label" :style="completedTaskStyle(subtask)">{{ subtask.name }}
+              <input type="checkbox" v-model="subtask.completed" @change="updateSubtaskCompletion">
             </span>
                     </li>
                 </ul>
@@ -38,81 +50,49 @@
     </card>
 </template>
 
-
-
-
 <script>
-
+import {mapActions, mapGetters, mapState} from 'vuex';
 import Card from "@/components/Card/Card.vue";
 import TaskCreator from "@/components/Task/TaskCreator.vue";
 
 export default {
-    name: 'AppHome',
-    components: {TaskCreator, Card},
-    data() {
-        return {
-            tasks: [],
-            creatingNewTask: false,
-            newTaskName: '',
-            newSubtaskName: {},
-        };
+    name: 'TaskList',
+    components: {Card, TaskCreator},
+    computed: {
+        ...mapState(['tasks']),
+        ...mapGetters(['totalSubtasks', 'completedSubtasksCount']),
+        completedSubtasksCount() {
+            return this.$store.getters.completedSubtasksCount;
+        },
+    },
+    methods: {
+        ...mapActions(['retrieveTasksFromLS', 'saveTasksToLS', 'createTask', 'updateTaskCompletion']),
+        toggleSubtasks(task) {
+            task.showSubtasks = !task.showSubtasks;
+        },
+        completedTaskStyle(task) {
+            return task.completed ? {textDecoration: 'line-through'} : {};
+        },
+        updateTaskCompletion(task) {
+            this.$store.commit('updateTaskCompletion', {taskId: task.id, completed: task.completed});
+        },
+        updateSubtaskCompletion(subtask) {
+            this.$store.commit('updateSubtaskCompletion', {subtaskId: subtask.id, completed: subtask.completed});
+        },
+        editTask(task) {
+
+        },
+        showConfirmationDialog(task) {
+
+        },
+        onTaskCreated(newTask) {
+            this.createTask(newTask);
+        },
     },
     mounted() {
         this.retrieveTasksFromLS();
     },
-    methods: {
-        toggleSubtasks(task) {
-            task.showSubtasks = !task.showSubtasks;
-        },
-
-        updateTaskCompletion(task) {
-            if (task.completed) {
-                return {textDecoration: 'line-through'};
-            } else {
-                return {textDecoration: 'none'};
-            }
-        },
-        updateSubtaskCompletion(subtask) {
-            if (subtask.completed) {
-                return {textDecoration: 'line-through'};
-            } else {
-                return {textDecoration: 'none'};
-            }
-        },
-
-        editTask(task) {
-        },
-        showConfirmationDialog(task) {
-        },
-        onTaskCreated(newTask) {
-            newTask.id = this.tasks.length + 1;
-            this.tasks.push(newTask);
-            this.saveTasksToLS();
-        },
-        saveTasksToLS() {
-            localStorage.setItem('tasks', JSON.stringify(this.tasks));
-        },
-        retrieveTasksFromLS() {
-            const storedTasks = localStorage.getItem('tasks');
-
-            if (storedTasks) {
-                this.tasks = JSON.parse(storedTasks);
-            }
-        }
-
-    },
-    computed: {
-        totalSubtasks() {
-            return task => task.subtasks.length;
-        },
-        completedSubtasks() {
-            return task => {
-                const completedSubtasks = task.subtasks.filter(subtask => subtask.completed);
-                return completedSubtasks.length;
-            };
-        },
-    },
-}
+};
 </script>
 
 <style scoped lang="scss">
