@@ -57,9 +57,9 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from 'vuex';
-import Card from "@/components/Card/Card.vue";
+import Card from "@/components/ui/Card/Card.vue";
 import TaskCreator from "@/components/Task/TaskCreator.vue";
-import AppModal from "@/components/Modal/AppModal.vue";
+import AppModal from "@/components/ui/Modal/AppModal.vue";
 import TaskEdit from "@/components/Task/TaskEdit.vue";
 
 export default {
@@ -88,10 +88,12 @@ export default {
       return task.completed ? {textDecoration: 'line-through'} : {};
     },
     updateTaskCompletion(task) {
-      this.$store.commit('UPDATE_TASK_COMPLETION', {taskId: task.id, completed: task.completed});
+      this.$store.commit('UPDATE_TASK_COMPLETION', { taskId: task.id, completed: task.completed });
+      this.$store.dispatch('saveTasksToLS');
     },
     updateSubtaskCompletion(subtask) {
       this.$store.commit('UPDATE_SUBTASK_COMPLETION', {subtaskId: subtask.id, completed: subtask.completed});
+      this.$store.dispatch('saveTasksToLS');
     },
     editTask(task) {
       this.$router.push({ name: 'edit-task', params: { id: task.id } });
@@ -101,7 +103,7 @@ export default {
       this.showModal = false
     },
     cancelDeletion() {
-        this.showModal = false
+      this.showModal = false
     },
     showConfirmationDialog(task) {
       this.showModal = true

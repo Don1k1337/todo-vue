@@ -15,7 +15,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@import "src/scss/mixins";
+@import "@/scss/mixins";
 
 .card {
   @include common-card;

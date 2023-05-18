@@ -6,7 +6,7 @@
 
 <script>
 import { defineComponent } from 'vue';
-import Card from '@/components/Card/Card.vue';
+import Card from '@/components/ui/Card/Card.vue';
 import TaskEdit from '@/components/Task/TaskEdit.vue';
 import { mapState } from 'vuex';
 

@@ -23,6 +23,7 @@
     </template>
     <card :card-title="'Task editor'" v-else>
       <template>
+        <app-alert :message="alertResponse" v-if="savedSuccessfully"/>
         <div>
           <h3 class="task-editor__title">Task</h3>
           <input class="task-editor__input" v-model="editedTask.name" type="text" />
@@ -42,7 +43,7 @@
             <button class="btn btn-primary" @click="saveTask">Save</button>
           </span>
           <span>
-            <button class="btn btn-warning" @click="cancelActionType = actionType; showModalEdit = true">Cancel</button>
+            <button class="btn btn-warning" @click="showConfirmationDialog(task, 'edit')">Cancel</button>
           </span>
           <span>
             <button class="btn btn-secondary" @click="addNewSubtaskField" :disabled="isDisabled">New subtask</button>
@@ -58,9 +59,10 @@
 
 <script>
 import {defineComponent} from 'vue';
-import Card from "@/components/Card/Card.vue";
-import AppModal from "@/components/Modal/AppModal.vue";
+import Card from "@/components/ui/Card/Card.vue";
+import AppModal from "@/components/ui/Modal/AppModal.vue";
 import router from "@/router";
+import AppAlert from "@/components/ui/Alert/AppAlert.vue";
 
 export default defineComponent({
   name: 'TaskEdit',
@@ -70,7 +72,7 @@ export default defineComponent({
       required: true,
     }
   },
-  components: { AppModal, Card },
+  components: {AppAlert, AppModal, Card },
   data() {
     return {
       editedTask: {},
@@ -80,6 +82,8 @@ export default defineComponent({
       showModalEdit: false,
       actionType: '',
       cancelActionType: '',
+      alertMsg: '',
+      savedSuccessfully: false
     };
   },
   watch: {
@@ -100,14 +104,13 @@ export default defineComponent({
       }
       this.editedTask.subtasks.push({ id: Date.now(), name: '' });
     },
-    goHome() {
-      router.push('/');
-    },
+
     cancelAction() {
       this.showModalDelete = false;
       this.showModalEdit = false;
     },
     confirmAction() {
+      console.log('Action Type:', this.actionType);
       if (this.actionType === 'edit') {
         this.confirmEdit();
       } else if (this.actionType === 'delete') {
@@ -115,9 +118,10 @@ export default defineComponent({
       }
     },
     confirmEdit() {
-      this.editedTask.completed = this.editedTask.subtasks.every(subtask => subtask.completed); // Update task completion based on subtask completion
-      this.$store.commit('SET_TASKS', this.editedTask); // Update tasks in the store
-      this.$store.dispatch('saveTasksToLS');
+      this.goHome();
+    },
+    goHome: () => {
+      router.push('/');
     },
     confirmDeletion() {
       this.goHome();
@@ -143,10 +147,55 @@ export default defineComponent({
       // Filter out empty subtasks
       // Update the editedTask with non-empty subtasks
       this.editedTask.subtasks = this.editedTask.subtasks.filter(subtask => subtask.name.trim() !== '');
-      this.$store.commit('UPDATE_TASK_COMPLETION', { taskId: this.editedTask.id, completed: this.editedTask.completed });
-      this.$store.commit('UPDATE_SUBTASK_COMPLETION', { taskId: this.editedTask.id, completed: this.editedTask.completed });
-      this.$store.dispatch('saveTasksToLS');
-    },
+
+      // Check if changes were made
+      const originalTask = this.$store.state.tasks.find(task => task.id === this.editedTask.id);
+      const hasChanges = JSON.stringify(originalTask) !== JSON.stringify(this.editedTask);
+
+      if (hasChanges) {
+        // Create a batch object to store the mutations
+        const mutationBatch = [];
+
+        // Check if task completion has changed
+        if (originalTask.completed !== this.editedTask.completed) {
+          mutationBatch.push({
+            type: 'UPDATE_TASK_COMPLETION',
+            payload: { taskId: this.editedTask.id, completed: this.editedTask.completed }
+          });
+        }
+
+        // Check if subtask completion has changed
+        this.editedTask.subtasks.forEach(subtask => {
+          const originalSubtask = originalTask.subtasks.find(st => st.id === subtask.id);
+          if (originalSubtask && originalSubtask.completed !== subtask.completed) {
+            mutationBatch.push({
+              type: 'UPDATE_SUBTASK_COMPLETION',
+              payload: { taskId: this.editedTask.id, subtaskId: subtask.id, completed: subtask.completed }
+            });
+          }
+          console.log(mutationBatch)
+        });
+
+        // Check if task details have changed
+        if (originalTask.name !== this.editedTask.name || originalTask.description !== this.editedTask.description) {
+          mutationBatch.push({
+            type: 'UPDATE_TASK',
+            payload: this.editedTask
+          });
+        }
+
+        // Commit the batch of mutations if there are changes
+        if (mutationBatch.length > 0) {
+          this.$store.commit('BATCH_MUTATIONS', mutationBatch);
+          this.$store.dispatch('saveTasksToLS');
+          this.savedSuccessfully = true;
+        } else {
+          this.savedSuccessfully = false;
+        }
+      } else {
+        this.savedSuccessfully = true;
+      }
+    }
 
     // need to implement this logic
     // revertAction () {
@@ -157,6 +206,13 @@ export default defineComponent({
   computed: {
     isDisabled() {
       return this.editedTask.subtasks.length >= 5
+    },
+    alertResponse() {
+      if (this.savedSuccessfully === false) {
+        return 'Not saved';
+      } else {
+        return 'Saved successfully!';
+      }
     },
     undoDisabled() {
       return this.$store.state.history.length === 0;
@@ -187,6 +243,10 @@ export default defineComponent({
   @include common-input;
   width: 200px;
 }
+.task-modal__content {
+  display: flex;
+  justify-content: space-evenly;
+}
 .editor-actions {
   display: flex;
   justify-content: space-evenly;
@@ -194,4 +254,5 @@ export default defineComponent({
 .btn {
   margin-top: 1rem;
 }
+
 </style>

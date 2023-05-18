@@ -6,10 +6,13 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         tasks: [],
-        history: [],
-        redoHistory: []
     },
     mutations: {
+        BATCH_MUTATIONS(state, mutationBatch) {
+            mutationBatch.forEach(mutation => {
+                this.commit(mutation.type, mutation.payload);
+            });
+        },
         SET_TASKS(state, tasks) {
             state.tasks = tasks;
         },
@@ -19,6 +22,13 @@ export default new Vuex.Store({
         DELETE_TASK(state, taskId) {
             state.tasks = state.tasks.filter(task => task.id !== taskId);
             this.dispatch('saveTasksToLS');
+        },
+        UPDATE_TASK(state, updatedTask) {
+            const taskIndex = state.tasks.findIndex((task) => task.id === updatedTask.id);
+            if (taskIndex !== -1) {
+                state.tasks.splice(taskIndex, 1, updatedTask);
+                this.dispatch('saveTasksToLS');
+            }
         },
         UPDATE_TASK_COMPLETION(state, { taskId, completed }) {
             const task = state.tasks.find((task) => task.id === taskId);
@@ -67,6 +77,10 @@ export default new Vuex.Store({
         },
         updateTaskCompletion({ commit, dispatch }, { taskId, completed }) {
             commit('UPDATE_TASK_COMPLETION', { taskId, completed });
+            dispatch('saveTasksToLS');
+        },
+        editTask({ commit, dispatch }, { taskId, updatedTask }) {
+            commit('EDIT_TASK', { taskId, updatedTask });
             dispatch('saveTasksToLS');
         },
         updateSubtaskCompletion({ commit, dispatch, state }, { taskId, subtaskId, completed }) {
