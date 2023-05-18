@@ -37,5 +37,10 @@
   &.focus {
     outline: 0;
   }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
 }
 

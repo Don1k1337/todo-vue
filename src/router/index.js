@@ -1,18 +1,20 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
-import EditView from '@/views/EditView.vue'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+import HomeView from '@/views/HomeView.vue';
+import EditView from '@/views/EditView.vue';
 
-Vue.use(VueRouter)
-
-const routes = [
-    {path: '/', component: HomeView},
-    {path: '/edit/:id', component: EditView}
-];
+Vue.use(VueRouter);
 
 const router = new VueRouter({
     mode: 'history',
-    routes
+    routes: [
+        { path: '/', component: HomeView },
+        {
+            path: '/edit/:id',
+            name: 'edit-task',
+            component: EditView,
+        },
+    ],
 });
 
-export default router
+export default router;

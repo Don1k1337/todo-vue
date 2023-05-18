@@ -112,11 +112,6 @@ export default {
   @include common-btn;
   padding: 7px;
   margin-bottom: 10px;
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
 }
 
 </style>

@@ -1,5 +1,6 @@
 <template>
   <card :card-title="'List of tasks'">
+    <task-edit v-if="taskForEdit" :task="taskForEdit"/>
     <task-creator :tasks="tasks" v-on:task-created="onTaskCreated"/>
     <app-modal :show-modal="showModal">
       <h3>Please confirm the action</h3>
@@ -59,16 +60,18 @@ import {mapActions, mapGetters, mapState} from 'vuex';
 import Card from "@/components/Card/Card.vue";
 import TaskCreator from "@/components/Task/TaskCreator.vue";
 import AppModal from "@/components/Modal/AppModal.vue";
+import TaskEdit from "@/components/Task/TaskEdit.vue";
 
 export default {
   name: 'TaskList',
   data() {
     return {
       showModal: false,
-      taskToDelete: ''
+      taskToDelete: '',
+      taskForEdit: null
     }
   },
-  components: {AppModal, Card, TaskCreator},
+  components: {TaskEdit, AppModal, Card, TaskCreator},
   computed: {
     ...mapState(['tasks']),
     ...mapGetters(['totalSubtasks', 'completedSubtasksCount']),
@@ -92,7 +95,7 @@ export default {
       this.saveTasksToLS();
     },
     editTask(task) {
-
+      this.$router.push({ name: 'edit-task', params: { id: task.id } });
     },
     confirmDeletion() {
       this.$store.dispatch('deleteTask', this.taskToDelete.id);
