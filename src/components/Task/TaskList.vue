@@ -92,7 +92,6 @@ export default {
     },
     updateSubtaskCompletion(subtask) {
       this.$store.commit('UPDATE_SUBTASK_COMPLETION', {subtaskId: subtask.id, completed: subtask.completed});
-      this.saveTasksToLS();
     },
     editTask(task) {
       this.$router.push({ name: 'edit-task', params: { id: task.id } });

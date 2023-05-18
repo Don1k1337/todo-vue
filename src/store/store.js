@@ -6,6 +6,8 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         tasks: [],
+        history: [],
+        redoHistory: []
     },
     mutations: {
         SET_TASKS(state, tasks) {
@@ -48,7 +50,11 @@ export default new Vuex.Store({
             }
         },
         saveTasksToLS({ state }) {
-            localStorage.setItem('tasks', JSON.stringify(state.tasks));
+            const tasksToSave = state.tasks.map((task) => {
+                const nonEmptySubtasks = task.subtasks.filter((subtask) => subtask.name.trim() !== '');
+                return { ...task, subtasks: nonEmptySubtasks };
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasksToSave));
         },
         createTask({ commit, dispatch, state }, newTask) {
             newTask.id = state.tasks.length + 1;
@@ -76,6 +82,7 @@ export default new Vuex.Store({
                 }
             }
         },
+
     },
     getters: {
         totalSubtasks: (state) => (taskId) => {

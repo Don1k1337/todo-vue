@@ -88,17 +88,7 @@ export default {
 }
 
 .card__input {
-  margin-right: 10px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.3s ease;
-
-  &:focus {
-    border-color: #23b646;
-  }
+  @include common-input;
   @media (max-width: 767px) {
     display: flex;
     justify-content: center;
