@@ -43,7 +43,7 @@
       <div v-if="task.showSubtasks && task.subtasks.length > 0">
         <ul class="task-item__subtask-list">
           <li v-for="subtask in task.subtasks" :key="subtask.id">
-        <span class="task-item__subtask-label">
+        <span class="task-item__subtask-label" :style="completedTaskStyle(subtask)">
           {{ subtask.name }}
         </span>
             <span class="task-item__subtask-checkbox" v-if="subtask.completed">
@@ -91,8 +91,14 @@ export default {
     toggleSubtasks(task) {
       task.showSubtasks = !task.showSubtasks;
     },
-    completedTaskStyle(task) {
-      return task.completed ? {textDecoration: 'line-through'} : {};
+    completedTaskStyle(task, subtask) {
+      if (subtask && subtask.completed) {
+        return { textDecoration: 'line-through' };
+      } else if (task && task.completed) {
+        return { textDecoration: 'line-through' };
+      } else {
+        return {};
+      }
     },
     updateTaskCompletionLocal(task) {
       this.updateTaskCompletion(task);
