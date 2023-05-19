@@ -20,17 +20,16 @@
       </div>
       <div class="task-item__info" @click="toggleSubtasks(task)">
         <span :style="completedTaskStyle(task)"
-              class="task-item__name"
-              @click="toggleSubtasks(task)">
+              class="task-item__name">
           {{ task.name }}
         </span>
         <span v-if="task.completed" class="task-item__marker">
           Marked as complete
-          <input v-model="task.completed" type="checkbox" @change="updateTaskCompletion(task)">
+          <input v-model="task.completed" type="checkbox" @change="updateTaskCompletionLocal(task)">
         </span>
         <span v-else class="task-item__marker">
           Marked as incomplete
-          <input v-model="task.completed" type="checkbox" @change="updateTaskCompletion(task)">
+          <input v-model="task.completed" type="checkbox" @change="updateTaskCompletionLocal(task)">
         </span>
       </div>
       <div class="task-item__subtasks-info">
@@ -44,10 +43,18 @@
       <div v-if="task.showSubtasks && task.subtasks.length > 0">
         <ul class="task-item__subtask-list">
           <li v-for="subtask in task.subtasks" :key="subtask.id">
-            <span :style="completedTaskStyle(subtask)" class="task-item__subtask-label">
-              {{ subtask.name }}
-              <input v-model="subtask.completed" type="checkbox" @change="updateSubtaskCompletion(task.id, subtask)">
-            </span>
+        <span class="task-item__subtask-label">
+          {{ subtask.name }}
+        </span>
+            <span class="task-item__subtask-checkbox" v-if="subtask.completed">
+              Marked as complete
+             <input v-model="subtask.completed" type="checkbox"
+                    @change="updateSubtaskCompletionLocal(task.id, subtask)">
+           </span>
+            <span class="task-item__subtask-checkbox" v-else>
+              Marked as incomplete
+            <input v-model="subtask.completed" type="checkbox" @change="updateSubtaskCompletionLocal(task.id, subtask)">
+           </span>
           </li>
         </ul>
       </div>
@@ -80,34 +87,34 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['retrieveTasksFromLS', 'saveTasksToLS', 'editTask', 'createTask', 'updateTaskCompletion', 'updateSubtaskCompletion']),
+    ...mapActions(['retrieveTasksFromLS', 'saveTasksToLS', 'editTask', 'createTask', 'updateTaskCompletion', 'updateSubtaskCompletion', 'deleteTask']),
     toggleSubtasks(task) {
       task.showSubtasks = !task.showSubtasks;
     },
     completedTaskStyle(task) {
       return task.completed ? {textDecoration: 'line-through'} : {};
     },
-    updateTaskCompletion(task) {
-      this.$store.commit('UPDATE_TASK_COMPLETION', {taskId: task.id, completed: task.completed});
-      this.$store.dispatch('saveTasksToLS');
+    updateTaskCompletionLocal(task) {
+      this.updateTaskCompletion(task);
+      this.saveTasksToLS();
     },
-    updateSubtaskCompletion(subtask) {
-      this.$store.commit('UPDATE_SUBTASK_COMPLETION', {subtaskId: subtask.id, completed: subtask.completed});
-      this.$store.dispatch('saveTasksToLS');
+    updateSubtaskCompletionLocal(subtask) {
+      this.updateSubtaskCompletion(subtask);
+      this.saveTasksToLS();
     },
     editTask(task) {
       this.$router.push({name: 'edit-task', params: {id: task.id}});
     },
     confirmDeletion() {
-      this.$store.dispatch('deleteTask', this.taskToDelete.id);
-      this.showModal = false
+      this.deleteTask(this.taskToDelete.id);
+      this.showModal = false;
     },
     cancelDeletion() {
-      this.showModal = false
+      this.showModal = false;
     },
     showConfirmationDialog(task) {
-      this.showModal = true
-      this.taskToDelete = task
+      this.showModal = true;
+      this.taskToDelete = task;
     },
     onTaskCreated(newTask) {
       this.createTask(newTask);
@@ -118,6 +125,7 @@ export default {
   },
 };
 </script>
+
 
 <style lang="scss" scoped>
 @import "@/scss/mixins";
@@ -138,6 +146,7 @@ export default {
   flex-direction: column;
   padding: 1rem;
   border-bottom: 1px solid #eaeaea;
+  flex: 1;
 
   &:last-child {
     border-bottom: none;
@@ -198,12 +207,17 @@ export default {
 
     li {
       display: flex;
+      justify-content: space-between;
       align-items: center;
       margin-bottom: 0.5rem;
 
-      input[type="checkbox"] {
-        margin-right: 0.5rem;
+      .task-item__subtask-checkbox {
+        margin-left: 0.5rem;
       }
+    }
+
+    @media #{$common-screen-size} {
+      font-size: 13px;
     }
   }
 
