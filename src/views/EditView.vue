@@ -33,9 +33,9 @@ export default {
     async loadData() {
       await this.$store.commit('SET_LOADING', true);
       try {
-        await this.$store.dispatch('retrieveTaskById', this.taskId);
+        return await this.$store.dispatch('retrieveTaskById', this.taskId)
       } catch (e) {
-        throw new Error(e)
+        console.error(e);
       } finally {
         await this.$store.commit('SET_LOADING', false);
       }

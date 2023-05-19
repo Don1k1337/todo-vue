@@ -203,45 +203,13 @@ export default defineComponent({
 
     saveTask() {
       // Filter out empty subtasks
-      // Update the editedTask with non-empty subtasks
       this.editedTask.subtasks = this.editedTask.subtasks.filter(subtask => subtask.name.trim() !== '');
 
-      // Check if task completion has changed
-      const originalTask = this.$store.state.tasks.find(task => task.id === this.editedTask.id);
-      const hasTaskChanges =
-          originalTask.completed !== this.editedTask.completed ||
-          originalTask.name !== this.editedTask.name ||
-          originalTask.description !== this.editedTask.description;
+      const taskCopy = {...this.editedTask}; // Create a copy of the edited task
+      this.undoStack.push(taskCopy); // Push the task copy to the undo stack
 
-      // Check if subtask completion or details have changed
-      const subtaskChanges = this.editedTask.subtasks.map(subtask => {
-        const originalSubtask = originalTask.subtasks.find(st => st.id === subtask.id);
-        if (originalSubtask) {
-          return (
-              originalSubtask.completed !== subtask.completed ||
-              originalSubtask.name !== subtask.name
-          );
-        }
-        return false;
-      });
+      this.$store.dispatch('updateTaskAndSubtasks', this.editedTask);
 
-      // Commit the mutations if there are changes
-      if (hasTaskChanges) {
-        this.$store.commit('UPDATE_TASK', this.editedTask);
-      }
-      subtaskChanges.forEach((changed, index) => {
-        if (changed) {
-          const subtask = this.editedTask.subtasks[index];
-          this.$store.commit('UPDATE_SUBTASK', {
-            taskId: this.editedTask.id,
-            subtaskId: subtask.id,
-            completed: subtask.completed,
-            name: subtask.name
-          });
-        }
-      });
-
-      this.$store.dispatch('saveTasksToLS');
       this.savedSuccessfully = true;
     }
   },
@@ -262,6 +230,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import '@/scss/mixins';
+@import '@/scss/variables';
 
 .task-modal {
   margin: 1rem;
@@ -269,6 +238,10 @@ export default defineComponent({
 
 .task-editor__title, .task-editor__subtitle {
   margin: 1rem;
+
+  @media #{$common-screen-size} {
+    font-size: 14px;
+  }
 }
 
 .task-editor__content {
@@ -289,6 +262,10 @@ export default defineComponent({
 
 .task-editor__empty-message {
   margin-top: 1000rem;
+
+  @media #{$common-screen-size} {
+    font-size: 13px
+  }
 }
 
 .task-editor__input {
@@ -306,7 +283,7 @@ export default defineComponent({
   display: flex;
   justify-content: space-evenly;
 
-  @media (max-width: 445px) {
+  @media (max-width: 640px) {
     display: flex;
     flex-wrap: wrap;
   }

@@ -61,15 +61,57 @@ export default new Vuex.Store({
         },
     },
     actions: {
-        retrieveTasksFromLS({commit}) {
-            const storedTasks = localStorage.getItem('tasks');
+        updateTaskAndSubtasks({commit, dispatch, state}, editedTask) {
+            const originalTask = state.tasks.find(task => task.id === editedTask.id);
 
-            if (storedTasks) {
-                const tasks = JSON.parse(storedTasks);
-                commit('SET_TASKS', tasks);
+            // Check if task completion or details have changed
+            const hasTaskChanges =
+                originalTask.completed !== editedTask.completed ||
+                originalTask.name !== editedTask.name ||
+                originalTask.description !== editedTask.description;
 
+            // Commit the mutation if there are changes to the task
+            if (hasTaskChanges) {
+                commit('UPDATE_TASK', editedTask);
+                dispatch('saveTasksToLS');
             }
+
+            // Update subtasks
+            editedTask.subtasks.forEach(subtask => {
+                const originalSubtask = originalTask.subtasks.find(st => st.id === subtask.id);
+                if (originalSubtask) {
+                    const subtaskChanges =
+                        originalSubtask.completed !== subtask.completed ||
+                        originalSubtask.name !== subtask.name;
+
+                    // Commit the mutation if there are changes to the subtask
+                    if (subtaskChanges) {
+                        commit('UPDATE_SUBTASK', {
+                            taskId: editedTask.id,
+                            subtaskId: subtask.id,
+                            completed: subtask.completed,
+                            name: subtask.name
+                        });
+                    }
+                }
+            });
+
+            dispatch('saveTasksToLS');
         },
+        retrieveTasksFromLS({commit}) {
+            return new Promise((resolve, reject) => {
+                const storedTasks = localStorage.getItem('tasks');
+
+                if (storedTasks) {
+                    const tasks = JSON.parse(storedTasks);
+                    commit('SET_TASKS', tasks);
+                    resolve(tasks);
+                } else {
+                    reject(new Error('No tasks found in local storage.'));
+                }
+            });
+        },
+
         retrieveTaskById({state}, taskId) {
             return state.tasks.find(task => task.id === taskId);
         },
@@ -82,6 +124,15 @@ export default new Vuex.Store({
         },
         createTask({commit, dispatch, state}, newTask) {
             newTask.id = state.tasks.length + 1;
+
+            if (newTask.subtasks && newTask.subtasks.length > 0) {
+                newTask.subtasks = newTask.subtasks.map((subtask, index) => ({
+                    id: index + 1,
+                    name: subtask.name,
+                    completed: false
+                }));
+            }
+
             commit('ADD_TASK', newTask);
             dispatch('saveTasksToLS');
         },
@@ -123,5 +174,5 @@ export default new Vuex.Store({
         retrieveTaskById: (state) => (taskId) => {
             return state.tasks.find((task) => task.id === taskId);
         },
-    },
+    }
 });

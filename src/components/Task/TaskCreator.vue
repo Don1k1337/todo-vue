@@ -24,31 +24,27 @@ export default {
     };
   },
   methods: {
-    addTask() {
-      // additional checks to prevent user actions when button is :disabled
-      if (this.isDisabled || this.createTask.trim() === '') {
-        return;
-      }
-      const newTask = {
-        id: this.$store.state.tasks.length + 1,
-        name: this.createTask,
-        completed: false,
-        subtasks: []
-      };
+      addTask() {
+        // Additional checks to prevent user actions when button is disabled
+        if (this.isDisabled || this.createTask.trim() === '') {
+          return;
+        }
 
-      if (this.createSubtask.trim() !== '') {
-        const newSubtask = {
-          id: 1,
-          name: this.createSubtask,
-          completed: false
+        const newTask = {
+          name: this.createTask,
+          completed: false,
+          subtasks: []
         };
-        newTask.subtasks.push(newSubtask);
-      }
 
-      this.$store.dispatch('createTask', newTask);
-      this.createTask = '';
-      this.createSubtask = '';
-    },
+        if (this.createSubtask.trim() !== '') {
+          newTask.subtasks.push({ name: this.createSubtask });
+        }
+
+        this.$store.dispatch('createTask', newTask);
+
+        this.createTask = '';
+        this.createSubtask = '';
+      },
   },
   computed: {
     isDisabled() {
@@ -97,6 +93,7 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 13px;
     margin-right: 0;
     margin-bottom: 10px;
   }
