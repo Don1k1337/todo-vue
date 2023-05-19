@@ -22,7 +22,7 @@
         <span class="task-item__name"
               :style="completedTaskStyle(task)"
               @click="toggleSubtasks(task)">
-          {{task.name }}
+          {{ task.name }}
         </span>
         <span class="task-item__marker" v-if="task.completed">
           Mark as incomplete
@@ -88,7 +88,7 @@ export default {
       return task.completed ? {textDecoration: 'line-through'} : {};
     },
     updateTaskCompletion(task) {
-      this.$store.commit('UPDATE_TASK_COMPLETION', { taskId: task.id, completed: task.completed });
+      this.$store.commit('UPDATE_TASK_COMPLETION', {taskId: task.id, completed: task.completed});
       this.$store.dispatch('saveTasksToLS');
     },
     updateSubtaskCompletion(subtask) {
@@ -96,7 +96,7 @@ export default {
       this.$store.dispatch('saveTasksToLS');
     },
     editTask(task) {
-      this.$router.push({ name: 'edit-task', params: { id: task.id } });
+      this.$router.push({name: 'edit-task', params: {id: task.id}});
     },
     confirmDeletion() {
       this.$store.dispatch('deleteTask', this.taskToDelete.id);

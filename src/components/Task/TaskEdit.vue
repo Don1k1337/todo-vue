@@ -24,19 +24,23 @@
     <card :card-title="'Task editor'" v-else>
       <template>
         <app-alert :message="alertResponse" v-if="savedSuccessfully"/>
-        <div>
+        <div class="task-editor__content">
           <h3 class="task-editor__title">Task</h3>
-          <input class="task-editor__input" v-model="editedTask.name" type="text" />
-          <input type="checkbox" v-model="editedTask.completed" />
+          <input class="task-editor__input" v-model="editedTask.name" type="text"
+                 placeholder="Change the task name..."/>
+          <button class="task-editor__delete-btn" @click="showConfirmationDialog(task, 'delete')">X</button>
+          <input type="checkbox" v-model="editedTask.completed"/>
         </div>
         <h4 v-if="editedTask.subtasks.length > 0" class="task-editor__subtitle">Subtasks</h4>
         <span v-else class="task-editor__empty-message">
           There are no subtasks yet, but you can add up to or equal to 5.
         </span>
-        <div class="task-editor" v-for="(subtask, index) in editedTask.subtasks" :key="subtask.id">
-          <input class="task-editor__input" v-model="subtask.name" type="text" />
+        <div class="task-editor__content" v-for="(subtask, index) in editedTask.subtasks" :key="subtask.id">
+          <input class="task-editor__input" v-model="subtask.name" type="text"
+                 placeholder="Change the subtask name..."/>
           <button class="task-editor__delete-btn" @click="deleteSubtask(index)">X</button>
-          <input v-if="subtask.name" type="checkbox" v-model="subtask.completed" :class="{ 'task-editor__checkbox--completed': subtask.completed }" />
+          <input type="checkbox" v-model="subtask.completed"
+                 :class="{ 'task-editor__checkbox--completed': subtask.completed }"/>
         </div>
         <div class="editor-actions">
           <span>
@@ -51,6 +55,12 @@
           <span>
             <button class="btn btn-danger" @click="showConfirmationDialog(task, 'delete')">Delete</button>
           </span>
+          <span>
+            <button class="btn btn-secondary" @click="undo" :disabled="undoStack.length === 0">Undo</button>
+          </span>
+          <span>
+            <button class="btn btn-secondary" @click="redo" :disabled="redoStack.length === 0">Redo</button>
+          </span>
         </div>
       </template>
     </card>
@@ -63,21 +73,25 @@ import Card from "@/components/ui/Card/Card.vue";
 import AppModal from "@/components/ui/Modal/AppModal.vue";
 import router from "@/router";
 import AppAlert from "@/components/ui/Alert/AppAlert.vue";
+import {undoRedoMixin} from "@/mixin/undoRedoMixin";
 
 export default defineComponent({
   name: 'TaskEdit',
+  mixins: [undoRedoMixin],
   props: {
     task: {
       type: Object,
       required: true,
     }
   },
-  components: {AppAlert, AppModal, Card },
+  components: {AppAlert, AppModal, Card},
   data() {
     return {
       editedTask: {},
       taskNotFound: false,
       taskLoaded: false,
+      undoStack: [],
+      redoStack: [],
       showModalDelete: false,
       showModalEdit: false,
       actionType: '',
@@ -91,19 +105,25 @@ export default defineComponent({
       immediate: true,
       handler(newTask) {
         if (newTask) {
-          this.editedTask = { ...newTask }
+          this.editedTask = {...newTask}
           this.taskLoaded = true
         }
       }
     }
   },
   methods: {
+
+
     addNewSubtaskField() {
       if (this.isDisabled) {
         return;
       }
-      this.editedTask.subtasks.push({ id: Date.now(), name: '' });
+
+      const newSubtask = {id: Date.now(), name: ''};
+      this.editedTask.subtasks.push(newSubtask);
+      this.addToUndoStack({type: 'add', subtask: newSubtask, index: this.editedTask.subtasks.length - 1});
     },
+
 
     cancelAction() {
       this.showModalDelete = false;
@@ -140,68 +160,93 @@ export default defineComponent({
       }
       this.taskToDelete = task;
     },
+
+
     deleteSubtask(index) {
+      const deletedSubtask = this.editedTask.subtasks[index];
       this.editedTask.subtasks.splice(index, 1);
+      this.addToUndoStack({type: 'delete', subtask: deletedSubtask, index});
     },
+
+    undo() {
+      if (this.undoStack.length > 0) {
+        const lastAction = this.undoStack.pop();
+        this.redoStack.push(lastAction);
+
+        if (lastAction.type === 'delete') {
+          if (this.editedTask.subtasks.length >= 5) {
+            this.editedTask.subtasks.splice(lastAction.index, 0, lastAction.subtask);
+            this.editedTask.subtasks.pop();
+          } else {
+            this.editedTask.subtasks.splice(lastAction.index, 0, lastAction.subtask);
+          }
+        } else if (lastAction.type === 'add') {
+          this.editedTask.subtasks.splice(lastAction.index, 1);
+        }
+      }
+    },
+
+    redo() {
+      if (this.redoStack.length > 0) {
+        const nextAction = this.redoStack.pop();
+        this.undoStack.push(nextAction);
+
+        if (nextAction.type === 'delete') {
+          this.editedTask.subtasks.splice(nextAction.index, 1);
+        } else if (nextAction.type === 'add') {
+          if (this.editedTask.subtasks.length >= 5) {
+            this.editedTask.subtasks.splice(nextAction.index, 0, nextAction.subtask);
+            this.editedTask.subtasks.pop();
+          } else {
+            this.editedTask.subtasks.splice(nextAction.index, 0, nextAction.subtask);
+          }
+        }
+      }
+    },
+
     saveTask() {
       // Filter out empty subtasks
       // Update the editedTask with non-empty subtasks
       this.editedTask.subtasks = this.editedTask.subtasks.filter(subtask => subtask.name.trim() !== '');
 
-      // Check if changes were made
+      // Check if task completion has changed
       const originalTask = this.$store.state.tasks.find(task => task.id === this.editedTask.id);
-      const hasChanges = JSON.stringify(originalTask) !== JSON.stringify(this.editedTask);
+      const hasTaskChanges =
+          originalTask.completed !== this.editedTask.completed ||
+          originalTask.name !== this.editedTask.name ||
+          originalTask.description !== this.editedTask.description;
 
-      if (hasChanges) {
-        // Create a batch object to store the mutations
-        const mutationBatch = [];
-
-        // Check if task completion has changed
-        if (originalTask.completed !== this.editedTask.completed) {
-          mutationBatch.push({
-            type: 'UPDATE_TASK_COMPLETION',
-            payload: { taskId: this.editedTask.id, completed: this.editedTask.completed }
-          });
+      // Check if subtask completion or details have changed
+      const subtaskChanges = this.editedTask.subtasks.map(subtask => {
+        const originalSubtask = originalTask.subtasks.find(st => st.id === subtask.id);
+        if (originalSubtask) {
+          return (
+              originalSubtask.completed !== subtask.completed ||
+              originalSubtask.name !== subtask.name
+          );
         }
+        return false;
+      });
 
-        // Check if subtask completion has changed
-        this.editedTask.subtasks.forEach(subtask => {
-          const originalSubtask = originalTask.subtasks.find(st => st.id === subtask.id);
-          if (originalSubtask && originalSubtask.completed !== subtask.completed) {
-            mutationBatch.push({
-              type: 'UPDATE_SUBTASK_COMPLETION',
-              payload: { taskId: this.editedTask.id, subtaskId: subtask.id, completed: subtask.completed }
-            });
-          }
-          console.log(mutationBatch)
-        });
-
-        // Check if task details have changed
-        if (originalTask.name !== this.editedTask.name || originalTask.description !== this.editedTask.description) {
-          mutationBatch.push({
-            type: 'UPDATE_TASK',
-            payload: this.editedTask
-          });
-        }
-
-        // Commit the batch of mutations if there are changes
-        if (mutationBatch.length > 0) {
-          this.$store.commit('BATCH_MUTATIONS', mutationBatch);
-          this.$store.dispatch('saveTasksToLS');
-          this.savedSuccessfully = true;
-        } else {
-          this.savedSuccessfully = false;
-        }
-      } else {
-        this.savedSuccessfully = true;
+      // Commit the mutations if there are changes
+      if (hasTaskChanges) {
+        this.$store.commit('UPDATE_TASK', this.editedTask);
       }
-    }
+      subtaskChanges.forEach((changed, index) => {
+        if (changed) {
+          const subtask = this.editedTask.subtasks[index];
+          this.$store.commit('UPDATE_SUBTASK', {
+            taskId: this.editedTask.id,
+            subtaskId: subtask.id,
+            completed: subtask.completed,
+            name: subtask.name
+          });
+        }
+      });
 
-    // need to implement this logic
-    // revertAction () {
-    // },
-    // redoRevertAction () {
-    // }
+      this.$store.dispatch('saveTasksToLS');
+      this.savedSuccessfully = true;
+    }
   },
   computed: {
     isDisabled() {
@@ -214,13 +259,6 @@ export default defineComponent({
         return 'Saved successfully!';
       }
     },
-    undoDisabled() {
-      return this.$store.state.history.length === 0;
-    },
-    redoDisabled() {
-      return this.$store.state.redoHistory.length === 0;
-    },
-
   }
 });
 </script>
@@ -233,24 +271,50 @@ export default defineComponent({
 }
 
 .task-editor__title, .task-editor__subtitle {
-  margin-top: 0.8rem;
+  margin: 1rem;
+}
+
+.task-editor__content {
+  margin-bottom: 0.5rem;
+
+  .task-editor__delete-btn {
+    background: #e74c3c;
+    color: #ffffff;
+    cursor: pointer;
+    border: none;
+
+    &:hover {
+      background: #c0392b;
+      color: #ffffff;
+    }
+  }
 }
 
 .task-editor__empty-message {
   margin-top: 1000rem;
 }
+
 .task-editor__input {
   @include common-input;
   width: 200px;
+
 }
+
 .task-modal__content {
   display: flex;
   justify-content: space-evenly;
 }
+
 .editor-actions {
   display: flex;
   justify-content: space-evenly;
+
+  @media (max-width: 445px) {
+    display: flex;
+    flex-wrap: wrap;
+  }
 }
+
 .btn {
   margin-top: 1rem;
 }

@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="modal__overlay" v-if="showModal"></div>
-    <div class="modal" v-if="showModal">
+    <div v-if="showModal" class="modal__overlay"></div>
+    <div v-if="showModal" class="modal">
       <div class="modal__content">
         <slot></slot>
       </div>
@@ -21,7 +21,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .modal__overlay {
   position: fixed;
   top: 0;

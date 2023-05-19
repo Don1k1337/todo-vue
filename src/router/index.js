@@ -8,7 +8,7 @@ Vue.use(VueRouter);
 const router = new VueRouter({
     mode: 'history',
     routes: [
-        { path: '/', component: HomeView },
+        {path: '/', component: HomeView},
         {
             path: '/edit/:id',
             name: 'edit-task',

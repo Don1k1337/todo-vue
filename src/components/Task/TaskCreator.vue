@@ -6,7 +6,8 @@
     </div>
     <div class="card__input-group">
       <label class="card__label" for="subtask-input"></label>
-      <input class="card__input" v-model="createSubtask" type="text" id="subtask-input" placeholder="Type some subtask...">
+      <input class="card__input" v-model="createSubtask" type="text" id="subtask-input"
+             placeholder="Type some subtask...">
     </div>
     <button class="btn btn-primary" :disabled="isDisabled" @click="addTask">Create</button>
   </div>
@@ -14,7 +15,7 @@
 
 <script>
 export default {
-  name: "TaskCreator",
+  name: 'TaskCreator',
   data() {
     return {
       createTask: "",
@@ -62,6 +63,7 @@ export default {
 .card {
   @include common-card;
 }
+
 .card__inputs {
   display: flex;
   flex-wrap: wrap;

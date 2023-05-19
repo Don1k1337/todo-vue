@@ -1,17 +1,15 @@
 <template>
-    <div class="card">
-        <h2 class="card__title">{{ cardTitle }}</h2>
-        <slot></slot>
-    </div>
+  <div class="card">
+    <h2 class="card__title">{{ cardTitle }}</h2>
+    <slot></slot>
+  </div>
 </template>
 
 <script>
-import {defineComponent} from 'vue'
-
-export default defineComponent({
-    name: "Card",
-    props: ['cardTitle']
-})
+export default {
+  name: "Card",
+  props: ['cardTitle']
+}
 </script>
 
 <style scoped lang="scss">
@@ -22,6 +20,7 @@ export default defineComponent({
 }
 
 .card__title {
+  font-weight: 700;
   margin: 0.5rem auto;
   font-size: 17px;
 }

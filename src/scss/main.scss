@@ -34,6 +34,7 @@ body {
     background: #2980b9;
     color: #ffffff;
   }
+
   &:disabled {
     background: #ccc;
     cursor: not-allowed;
@@ -49,6 +50,7 @@ body {
     color: #ffffff;
   }
 }
+
 .btn-warning {
   background: #e18206;
   color: #ffffff;
@@ -57,4 +59,8 @@ body {
     background: #9fa2a4;
     color: #ffffff;
   }
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
 }
