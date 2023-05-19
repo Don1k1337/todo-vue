@@ -1,13 +1,14 @@
 <template>
-    <nav>
-        <h1>Simple Todo App</h1>
-        <router-link to="/">Home</router-link>
-    </nav>
+  <nav class="navbar">
+    <h1 class="navbar__title">Simple Todo App</h1>
+    <router-link to="/">Home</router-link>
+  </nav>
 </template>
 
 <style scoped lang="scss">
+@import "@/scss/variables";
 
-nav {
+.navbar {
   position: fixed;
   top: 0;
   left: 0;
@@ -30,10 +31,14 @@ nav {
     }
   }
 
-  h1 {
+  .navbar__title, a {
     margin: 0 18px;
     font-size: 18px;
+
+    @media #{$common-screen-size} {
+      font-weight: 700;
+      font-size: 14px;
+    }
   }
 }
-
 </style>

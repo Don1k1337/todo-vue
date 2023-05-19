@@ -1,4 +1,6 @@
 // mixins
+@import "variables";
+
 @mixin common-card {
   max-width: 700px;
   overflow: hidden;
@@ -8,7 +10,7 @@
   box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.2);
   background: #fff;
 
-  @media (max-width: 767px) {
+  @media #{$common-screen-size} {
     margin: 60px auto;
     padding: 0.5rem;
     box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.2);
@@ -37,5 +39,24 @@
   &.focus {
     outline: 0;
   }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
 }
 
+
+@mixin common-input {
+  margin-right: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease;
+
+  &:focus {
+    border-color: #23b646;
+  }
+}

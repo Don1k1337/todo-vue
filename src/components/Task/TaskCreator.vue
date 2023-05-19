@@ -2,19 +2,21 @@
   <div class="card__inputs">
     <div class="card__input-group">
       <label class="card__label" for="task-input"></label>
-      <input class="card__input" v-model="createTask" type="text" id="task-input" placeholder="Type some task...">
+      <input id="task-input" v-model="createTask" class="card__input" placeholder="Type some task..." required
+             type="text">
     </div>
     <div class="card__input-group">
       <label class="card__label" for="subtask-input"></label>
-      <input class="card__input" v-model="createSubtask" type="text" id="subtask-input" placeholder="Type some subtask...">
+      <input id="subtask-input" v-model="createSubtask" class="card__input" placeholder="Type some subtask..."
+             type="text">
     </div>
-    <button class="btn btn-primary" :disabled="isDisabled" @click="addTask">Create</button>
+    <button :disabled="isDisabled" class="btn btn-primary" @click="addTask">Create</button>
   </div>
 </template>
 
 <script>
 export default {
-  name: "TaskCreator",
+  name: 'TaskCreator',
   data() {
     return {
       createTask: "",
@@ -24,7 +26,7 @@ export default {
   methods: {
     addTask() {
       // additional checks to prevent user actions when button is :disabled
-      if (this.isDisabled) {
+      if (this.isDisabled || this.createTask.trim() === '') {
         return;
       }
       const newTask = {
@@ -56,12 +58,14 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-@import 'src/scss/mixins';
+<style lang="scss" scoped>
+@import "@/scss/mixins";
+@import "@/scss/variables";
 
 .card {
   @include common-card;
 }
+
 .card__inputs {
   display: flex;
   flex-wrap: wrap;
@@ -76,7 +80,7 @@ export default {
   margin-bottom: 10px;
 }
 
-@media (max-width: 767px) {
+@media #{$common-screen-size} {
   .card__inputs {
     flex-direction: column;
     padding: 0 10px;
@@ -88,18 +92,8 @@ export default {
 }
 
 .card__input {
-  margin-right: 10px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.3s ease;
-
-  &:focus {
-    border-color: #23b646;
-  }
-  @media (max-width: 767px) {
+  @include common-input;
+  @media #{$common-screen-size} {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -112,11 +106,6 @@ export default {
   @include common-btn;
   padding: 7px;
   margin-bottom: 10px;
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
 }
 
 </style>
