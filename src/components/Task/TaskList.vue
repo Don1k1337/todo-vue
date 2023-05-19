@@ -92,13 +92,11 @@ export default {
       task.showSubtasks = !task.showSubtasks;
     },
     completedTaskStyle(task, subtask) {
-      if (subtask && subtask.completed) {
+      if (subtask?.completed || task?.completed) {
         return { textDecoration: 'line-through' };
-      } else if (task && task.completed) {
-        return { textDecoration: 'line-through' };
-      } else {
-        return {};
       }
+
+      return {};
     },
     updateTaskCompletionLocal(task) {
       this.updateTaskCompletion(task);
