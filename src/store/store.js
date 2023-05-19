@@ -6,8 +6,12 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state: {
         tasks: [],
+        loading: false
     },
     mutations: {
+        SET_LOADING(state, tasks) {
+            state.loading = tasks
+        },
         SET_TASKS(state, tasks) {
             state.tasks = tasks;
         },
@@ -59,10 +63,15 @@ export default new Vuex.Store({
     actions: {
         retrieveTasksFromLS({commit}) {
             const storedTasks = localStorage.getItem('tasks');
+
             if (storedTasks) {
                 const tasks = JSON.parse(storedTasks);
                 commit('SET_TASKS', tasks);
+
             }
+        },
+        retrieveTaskById({state}, taskId) {
+            return state.tasks.find(task => task.id === taskId);
         },
         saveTasksToLS({state}) {
             const tasksToSave = state.tasks.map(task => {
@@ -110,6 +119,9 @@ export default new Vuex.Store({
         completedSubtasksCount: state => taskId => {
             const task = state.tasks.find(task => task.id === taskId);
             return task ? task.subtasks.filter(subtask => subtask.completed).length : 0;
+        },
+        retrieveTaskById: (state) => (taskId) => {
+            return state.tasks.find((task) => task.id === taskId);
         },
     },
 });

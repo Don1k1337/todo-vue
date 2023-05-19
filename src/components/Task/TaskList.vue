@@ -1,8 +1,8 @@
 <template>
   <card :card-title="'List of tasks'">
     <task-edit v-if="taskForEdit" :task="taskForEdit"/>
-    <task-creator :tasks="tasks" v-on:task-created="onTaskCreated"/>
-    <app-modal :show-modal="showModal">
+    <task-creator :tasks="tasks" :task-created="onTaskCreated"/>
+    <app-modal :router="this.$router" :show-modal="showModal">
       <h3>Please confirm the action</h3>
       <div class="task-modal">
         <span class="task-modal__btn">
@@ -13,24 +13,24 @@
         </span>
       </div>
     </app-modal>
-    <div class="task-item" v-for="task in tasks" :key="task.id">
+    <div v-for="task in tasks" :key="task.id" class="task-item">
       <div class="task-item__actions">
         <button class="btn btn-secondary" @click="editTask(task)">Edit</button>
         <button class="btn btn-danger" @click="showConfirmationDialog(task)">Delete</button>
       </div>
       <div class="task-item__info" @click="toggleSubtasks(task)">
-        <span class="task-item__name"
-              :style="completedTaskStyle(task)"
+        <span :style="completedTaskStyle(task)"
+              class="task-item__name"
               @click="toggleSubtasks(task)">
           {{ task.name }}
         </span>
-        <span class="task-item__marker" v-if="task.completed">
-          Mark as incomplete
-          <input type="checkbox" v-model="task.completed" @change="updateTaskCompletion(task)">
+        <span v-if="task.completed" class="task-item__marker">
+          Marked as complete
+          <input v-model="task.completed" type="checkbox" @change="updateTaskCompletion(task)">
         </span>
-        <span class="task-item__marker" v-else>
-          Mark as completed
-          <input type="checkbox" v-model="task.completed" @change="updateTaskCompletion(task)">
+        <span v-else class="task-item__marker">
+          Marked as incomplete
+          <input v-model="task.completed" type="checkbox" @change="updateTaskCompletion(task)">
         </span>
       </div>
       <div class="task-item__subtasks-info">
@@ -44,9 +44,9 @@
       <div v-if="task.showSubtasks && task.subtasks.length > 0">
         <ul class="task-item__subtask-list">
           <li v-for="subtask in task.subtasks" :key="subtask.id">
-            <span class="task-item__subtask-label" :style="completedTaskStyle(subtask)">
+            <span :style="completedTaskStyle(subtask)" class="task-item__subtask-label">
               {{ subtask.name }}
-              <input type="checkbox" v-model="subtask.completed" @change="updateSubtaskCompletion(task.id, subtask)">
+              <input v-model="subtask.completed" type="checkbox" @change="updateSubtaskCompletion(task.id, subtask)">
             </span>
           </li>
         </ul>
@@ -80,7 +80,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['retrieveTasksFromLS', 'saveTasksToLS', 'createTask', 'updateTaskCompletion']),
+    ...mapActions(['retrieveTasksFromLS', 'saveTasksToLS', 'editTask', 'createTask', 'updateTaskCompletion', 'updateSubtaskCompletion']),
     toggleSubtasks(task) {
       task.showSubtasks = !task.showSubtasks;
     },
@@ -119,8 +119,9 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
-@import "../../scss/mixins";
+<style lang="scss" scoped>
+@import "@/scss/mixins";
+@import "@/scss/variables";
 
 .card {
   @include common-card;
@@ -147,6 +148,10 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-top: 14px;
+
+    @media #{$common-screen-size} {
+      font-size: 13px;
+    }
   }
 
   .task-item__marker {
@@ -164,6 +169,10 @@ export default {
     font-size: 14px;
     color: #888;
     margin-top: 0.5rem;
+
+    @media #{$common-screen-size} {
+      font-size: 12px;
+    }
   }
 
   hr {

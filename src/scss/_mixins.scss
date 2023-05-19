@@ -1,4 +1,6 @@
 // mixins
+@import "variables";
+
 @mixin common-card {
   max-width: 700px;
   overflow: hidden;
@@ -8,7 +10,7 @@
   box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.2);
   background: #fff;
 
-  @media (max-width: 767px) {
+  @media #{$common-screen-size} {
     margin: 60px auto;
     padding: 0.5rem;
     box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.2);

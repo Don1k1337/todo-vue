@@ -41,6 +41,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
 .alert {
   position: fixed;
   top: 40px;
@@ -78,4 +79,5 @@ export default {
     pointer-events: none;
   }
 }
+
 </style>

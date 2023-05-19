@@ -13,7 +13,7 @@
     </app-modal>
     <template v-if="!task || !taskLoaded">
       <app-modal :show-modal="taskNotFound = true">
-        <h2 class="task-modal__title">Oops! Seems that the URL path is not correct, or the task is not found</h2>
+        <h2 class="task-modal__title">Oops! Seems that the task is not found</h2>
         <div class="task-modal__content">
           <span class="task-modal__btn">
             <button class="btn btn-secondary" @click="goHome">Back home</button>
@@ -21,26 +21,26 @@
         </div>
       </app-modal>
     </template>
-    <card :card-title="'Task editor'" v-else>
+    <card v-else :card-title="'Task editor'">
       <template>
-        <app-alert :message="alertResponse" v-if="savedSuccessfully"/>
+        <app-alert v-if="savedSuccessfully" :message="alertResponse"/>
         <div class="task-editor__content">
           <h3 class="task-editor__title">Task</h3>
-          <input class="task-editor__input" v-model="editedTask.name" type="text"
-                 placeholder="Change the task name..."/>
+          <input v-model="editedTask.name" class="task-editor__input" placeholder="Change the task name..."
+                 type="text"/>
           <button class="task-editor__delete-btn" @click="showConfirmationDialog(task, 'delete')">X</button>
-          <input type="checkbox" v-model="editedTask.completed"/>
+          <input v-model="editedTask.completed" type="checkbox"/>
         </div>
         <h4 v-if="editedTask.subtasks.length > 0" class="task-editor__subtitle">Subtasks</h4>
         <span v-else class="task-editor__empty-message">
           There are no subtasks yet, but you can add up to or equal to 5.
         </span>
-        <div class="task-editor__content" v-for="(subtask, index) in editedTask.subtasks" :key="subtask.id">
-          <input class="task-editor__input" v-model="subtask.name" type="text"
-                 placeholder="Change the subtask name..."/>
+        <div v-for="(subtask, index) in editedTask.subtasks" :key="subtask.id" class="task-editor__content">
+          <input v-model="subtask.name" class="task-editor__input" placeholder="Change the subtask name..."
+                 type="text"/>
           <button class="task-editor__delete-btn" @click="deleteSubtask(index)">X</button>
-          <input type="checkbox" v-model="subtask.completed"
-                 :class="{ 'task-editor__checkbox--completed': subtask.completed }"/>
+          <input v-model="subtask.completed" :class="{ 'task-editor__checkbox--completed': subtask.completed }"
+                 type="checkbox"/>
         </div>
         <div class="editor-actions">
           <span>
@@ -50,16 +50,16 @@
             <button class="btn btn-warning" @click="showConfirmationDialog(task, 'edit')">Cancel</button>
           </span>
           <span>
-            <button class="btn btn-secondary" @click="addNewSubtaskField" :disabled="isDisabled">New subtask</button>
+            <button :disabled="isDisabled" class="btn btn-secondary" @click="addNewSubtaskField">New subtask</button>
           </span>
           <span>
             <button class="btn btn-danger" @click="showConfirmationDialog(task, 'delete')">Delete</button>
           </span>
           <span>
-            <button class="btn btn-secondary" @click="undo" :disabled="undoStack.length === 0">Undo</button>
+            <button :disabled="undoStack.length === 0" class="btn btn-secondary" @click="undo">Undo</button>
           </span>
           <span>
-            <button class="btn btn-secondary" @click="redo" :disabled="redoStack.length === 0">Redo</button>
+            <button :disabled="redoStack.length === 0" class="btn btn-secondary" @click="redo">Redo</button>
           </span>
         </div>
       </template>
@@ -71,13 +71,13 @@
 import {defineComponent} from 'vue';
 import Card from "@/components/ui/Card/Card.vue";
 import AppModal from "@/components/ui/Modal/AppModal.vue";
-import router from "@/router";
 import AppAlert from "@/components/ui/Alert/AppAlert.vue";
 import {undoRedoMixin} from "@/mixin/undoRedoMixin";
+import {goHomeMixin} from "@/mixin/goHomeMixin";
 
 export default defineComponent({
   name: 'TaskEdit',
-  mixins: [undoRedoMixin],
+  mixins: [undoRedoMixin, goHomeMixin],
   props: {
     task: {
       type: Object,
@@ -130,7 +130,6 @@ export default defineComponent({
       this.showModalEdit = false;
     },
     confirmAction() {
-      console.log('Action Type:', this.actionType);
       if (this.actionType === 'edit') {
         this.confirmEdit();
       } else if (this.actionType === 'delete') {
@@ -140,13 +139,11 @@ export default defineComponent({
     confirmEdit() {
       this.goHome();
     },
-    goHome: () => {
-      router.push('/');
-    },
+
     confirmDeletion() {
-      this.goHome();
       this.$store.dispatch('deleteTask', this.taskToDelete.id);
       this.showModalDelete = false;
+      this.goHome();
     },
     cancelDeletion() {
       this.showModalDelete = false;
@@ -263,7 +260,7 @@ export default defineComponent({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '@/scss/mixins';
 
 .task-modal {

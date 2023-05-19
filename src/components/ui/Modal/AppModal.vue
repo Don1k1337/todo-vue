@@ -46,7 +46,11 @@ export default {
   z-index: 1000;
 }
 
-.modal__content {
-  margin: 1rem;
+.modal-content {
+  margin-top: 1rem;
+  .modal-title {
+    margin-top: 1rem;
+  }
 }
+
 </style>
